@@ -1,99 +1,191 @@
 <template>
-  <div class="flex flex-col h-screen">
-    <!-- Toolbar -->
-    <div class="bg-gray-800 p-4 flex gap-4">
-      <button
-        @click="triggerFileInput"
-        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-        </svg>
-        Upload SVG
-      </button>
-
-      <button
-        @click="copySvgCode"
-        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-        </svg>
-        Copy Code
-      </button>
-
-      <button
-        @click="downloadSvg"
-        class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        Download SVG
-      </button>
-    </div>
-
+  <div class="h-screen flex flex-col overflow-hidden">
     <!-- Editor and Preview -->
-    <div class="flex flex-1">
+    <div class="flex flex-1 min-h-0">
       <!-- Code Editor Section -->
-      <div class="w-1/2 p-4 bg-gray-900">
+      <div class="w-1/2 p-2 bg-gray-900 flex flex-col">
         <textarea
           v-model="svgCode"
-          class="w-full h-full bg-gray-800 text-white font-mono p-4 resize-none"
+          class="flex-1 w-full bg-gray-800 text-white font-mono p-4 resize-none"
           @input="updatePreview"
         ></textarea>
+        
+        <!-- Editor Controls (Moved from top) -->
+        <div class="py-2 px-4 flex gap-4 bg-gray-800 mt-2 rounded">
+          <button
+            @click="triggerFileInput"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+            </svg>
+            Upload SVG
+          </button>
+
+          <button
+            @click="copySvgCode"
+            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            Copy Code
+          </button>
+
+          <button
+            @click="downloadSvg"
+            class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download SVG
+          </button>
+        </div>
       </div>
       
       <!-- Preview Section -->
-      <div class="w-1/2 p-4 bg-white flex flex-col">
-        <!-- Export Options Tabs -->
-        <div class="mb-4 border-b border-gray-200">
-          <nav class="flex space-x-4" aria-label="Export options">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              @click="activeTab = tab.id"
-              :class="[
-                'px-3 py-2 text-sm font-medium rounded-t-lg',
-                activeTab === tab.id
-                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              ]"
-            >
-              {{ tab.name }}
-            </button>
-          </nav>
+      <div class="w-1/2 p-2 bg-white flex flex-col min-h-0">
+        <!-- Tabs Navigation -->
+        <div class="flex border-b">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            class="px-4 py-2 border-b-2"
+            :class="[
+              activeTab === tab.id
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent hover:border-gray-300'
+            ]"
+          >
+            {{ tab.name }}
+          </button>
         </div>
 
-        <!-- Preview Content -->
-        <div class="flex-1">
-          <!-- SVG Preview -->
-          <div v-if="activeTab === 'preview'" class="preview-container h-full flex items-center justify-center" v-html="sanitizedSvg"></div>
+        <!-- Tab Content -->
+        <div class="flex-1 overflow-auto p-4">
+          <!-- Preview Tab -->
+          <div v-if="activeTab === 'preview'" class="flex flex-col h-full">
+            <!-- Preview Container -->
+            <div
+              class="preview-container flex-1 flex items-center justify-center relative overflow-hidden mb-2"
+              :class="[
+                currentBackground === 'transparent' ? 'bg-checkered' : '',
+                currentBackground === 'white' ? 'bg-white' : '',
+                currentBackground === 'grey' ? 'bg-[#F7F8F9]' : '',
+                currentBackground === 'black' ? 'bg-[#161B1D]' : ''
+              ]"
+              @mousedown="startDrag"
+              @mousemove="onDrag"
+              @mouseup="stopDrag"
+              @mouseleave="stopDrag"
+            >
+              <div
+                ref="svgWrapper"
+                class="svg-wrapper"
+                :style="{
+                  transform: `scale(${zoom / 100}) translate(${position.x}px, ${position.y}px)`,
+                  transformOrigin: 'center center',
+                  cursor: isDragging ? 'grabbing' : 'grab'
+                }"
+                v-html="sanitizedSvg"
+              ></div>
+            </div>
 
-          <!-- React Component -->
+            <!-- Preview Controls -->
+            <div class="flex items-center gap-4 p-2 bg-gray-100 rounded">
+              <!-- Zoom Controls -->
+              <div class="flex items-center gap-2 border-r pr-4">
+                <button
+                  @click="decreaseZoom"
+                  class="p-1 hover:bg-gray-200 rounded"
+                  :disabled="zoom <= 25"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                  </svg>
+                </button>
+                
+                <span class="min-w-[60px] text-center">{{ zoom }}%</span>
+                
+                <button
+                  @click="increaseZoom"
+                  class="p-1 hover:bg-gray-200 rounded"
+                  :disabled="zoom >= 200"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Background Controls -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Background:</span>
+                <div class="flex gap-1">
+                  <button
+                    v-for="bg in backgrounds"
+                    :key="bg.id"
+                    @click="currentBackground = bg.id"
+                    :class="[
+                      'w-8 h-8 rounded border',
+                      currentBackground === bg.id ? 'ring-2 ring-blue-500' : '',
+                      bg.id === 'transparent' ? 'bg-checkered' : ''
+                    ]"
+                    :style="bg.id !== 'transparent' ? { backgroundColor: bg.color } : {}"
+                    :title="bg.name"
+                  >
+                    <svg
+                      v-if="currentBackground === bg.id"
+                      class="w-4 h-4 m-auto"
+                      :class="bg.id === 'white' ? 'text-gray-800' : 'text-white'"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Download Button -->
+              <button
+                @click="downloadSvgFromPreview"
+                class="ml-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download SVG
+              </button>
+            </div>
+          </div>
+
+          <!-- React Tab -->
           <div v-else-if="activeTab === 'react'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ reactComponent }}</code></pre>
+            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ reactComponent }}</code></pre>
           </div>
 
-          <!-- React Native Component -->
+          <!-- React Native Tab -->
           <div v-else-if="activeTab === 'react-native'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ reactNativeComponent }}</code></pre>
+            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ reactNativeComponent }}</code></pre>
           </div>
 
-          <!-- PNG Preview -->
-          <div v-else-if="activeTab === 'png'" class="h-full flex flex-col items-center justify-center gap-4">
-            <canvas ref="pngCanvas" class="border border-gray-200"></canvas>
-            <button
-              @click="downloadPNG"
+          <!-- PNG Tab -->
+          <div v-else-if="activeTab === 'png'" class="flex flex-col items-center gap-4">
+            <canvas ref="pngCanvas" class="border"></canvas>
+            <button 
+              @click="downloadPng"
               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
             >
               Download PNG
             </button>
           </div>
 
-          <!-- Data URI -->
+          <!-- Data URI Tab -->
           <div v-else-if="activeTab === 'data-uri'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ dataUri }}</code></pre>
+            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ dataUri }}</code></pre>
           </div>
         </div>
       </div>
@@ -270,15 +362,111 @@ const updatePreview = () => {
     console.warn('Invalid SVG code')
   }
 }
+
+// Preview controls state
+const zoom = ref(100)
+const backgrounds = [
+  { id: 'transparent', name: 'Transparent', color: 'transparent' },
+  { id: 'white', name: 'White', color: '#FFFFFF' },
+  { id: 'grey', name: 'Grey', color: '#F7F8F9' },
+  { id: 'black', name: 'Black', color: '#161B1D' }
+]
+const currentBackground = ref('transparent')
+
+// Zoom controls
+const increaseZoom = () => {
+  if (zoom.value < 200) {
+    zoom.value += 25
+  }
+}
+
+const decreaseZoom = () => {
+  if (zoom.value > 25) {
+    zoom.value -= 25
+  }
+}
+
+// Download function specifically for preview
+const downloadSvgFromPreview = () => {
+  const blob = new Blob([svgCode.value], { type: 'image/svg+xml' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'image.svg'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+// Add these new refs for drag functionality
+const isDragging = ref(false)
+const position = ref({ x: 0, y: 0 })
+const dragStart = ref({ x: 0, y: 0 })
+const svgWrapper = ref<HTMLElement | null>(null)
+
+// Drag functionality
+const startDrag = (event: MouseEvent) => {
+  isDragging.value = true
+  dragStart.value = {
+    x: event.clientX - position.value.x,
+    y: event.clientY - position.value.y
+  }
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!isDragging.value) return
+  
+  position.value = {
+    x: event.clientX - dragStart.value.x,
+    y: event.clientY - dragStart.value.y
+  }
+}
+
+const stopDrag = () => {
+  isDragging.value = false
+}
+
+// Reset position when zoom changes
+watch(zoom, () => {
+  position.value = { x: 0, y: 0 }
+})
 </script>
 
 <style scoped>
-.preview-container {
+.bg-checkered {
   background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
     linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
     linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.svg-wrapper {
+  transition: transform 0.2s ease;
+  user-select: none; /* Prevent text selection while dragging */
+}
+
+.preview-container {
+  transition: background-color 0.2s ease;
+}
+
+/* Ensure SVG maintains aspect ratio */
+.svg-wrapper :deep(svg) {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: none; /* Prevent SVG from interfering with drag */
+}
+
+pre {
+  margin: 0;
+}
+
+textarea {
+  height: 100% !important;
+  min-height: 0; /* Prevents textarea from growing beyond container */
 }
 </style> 
