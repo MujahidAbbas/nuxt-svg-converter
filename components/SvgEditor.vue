@@ -45,8 +45,57 @@
       </div>
       
       <!-- Preview Section -->
-      <div class="w-1/2 p-4 bg-white">
-        <div class="preview-container h-full flex items-center justify-center" v-html="sanitizedSvg"></div>
+      <div class="w-1/2 p-4 bg-white flex flex-col">
+        <!-- Export Options Tabs -->
+        <div class="mb-4 border-b border-gray-200">
+          <nav class="flex space-x-4" aria-label="Export options">
+            <button
+              v-for="tab in tabs"
+              :key="tab.id"
+              @click="activeTab = tab.id"
+              :class="[
+                'px-3 py-2 text-sm font-medium rounded-t-lg',
+                activeTab === tab.id
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              ]"
+            >
+              {{ tab.name }}
+            </button>
+          </nav>
+        </div>
+
+        <!-- Preview Content -->
+        <div class="flex-1">
+          <!-- SVG Preview -->
+          <div v-if="activeTab === 'preview'" class="preview-container h-full flex items-center justify-center" v-html="sanitizedSvg"></div>
+
+          <!-- React Component -->
+          <div v-else-if="activeTab === 'react'" class="h-full">
+            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ reactComponent }}</code></pre>
+          </div>
+
+          <!-- React Native Component -->
+          <div v-else-if="activeTab === 'react-native'" class="h-full">
+            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ reactNativeComponent }}</code></pre>
+          </div>
+
+          <!-- PNG Preview -->
+          <div v-else-if="activeTab === 'png'" class="h-full flex flex-col items-center justify-center gap-4">
+            <canvas ref="pngCanvas" class="border border-gray-200"></canvas>
+            <button
+              @click="downloadPNG"
+              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Download PNG
+            </button>
+          </div>
+
+          <!-- Data URI -->
+          <div v-else-if="activeTab === 'data-uri'" class="h-full">
+            <pre class="bg-gray-100 p-4 rounded h-full overflow-auto"><code>{{ dataUri }}</code></pre>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -62,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import DOMPurify from 'dompurify'
 import { validateSvg } from '~/utils/svg-utils'
 
@@ -76,6 +125,95 @@ const sanitizedSvg = computed(() => {
     USE_PROFILES: { svg: true, svgFilters: true }
   })
 })
+
+const tabs = [
+  { id: 'preview', name: 'Preview' },
+  { id: 'react', name: 'React' },
+  { id: 'react-native', name: 'React Native' },
+  { id: 'png', name: 'PNG' },
+  { id: 'data-uri', name: 'Data URI' }
+]
+
+const activeTab = ref('preview')
+const pngCanvas = ref<HTMLCanvasElement | null>(null)
+
+// React Component Export
+const reactComponent = computed(() => {
+  const componentName = 'SvgIcon'
+  return `import React from 'react';
+
+const ${componentName} = (props) => {
+  return (
+    ${svgCode.value.replace(/<svg/, '<svg {...props}')}
+  );
+};
+
+export default ${componentName};`
+})
+
+// React Native Component Export
+const reactNativeComponent = computed(() => {
+  const componentName = 'SvgIcon'
+  return `import React from 'react';
+import Svg, { Path, Circle, Rect } from 'react-native-svg';
+
+const ${componentName} = (props) => {
+  return (
+    ${convertToReactNativeSvg(svgCode.value)}
+  );
+};
+
+export default ${componentName};`
+})
+
+// Data URI Export
+const dataUri = computed(() => {
+  const encoded = encodeURIComponent(svgCode.value)
+  return `data:image/svg+xml,${encoded}`
+})
+
+// Convert SVG to React Native compatible format
+const convertToReactNativeSvg = (svg: string) => {
+  return svg
+    .replace(/<svg/, '<Svg')
+    .replace(/<\/svg>/, '</Svg>')
+    .replace(/<path/g, '<Path')
+    .replace(/<circle/g, '<Circle')
+    .replace(/<rect/g, '<Rect')
+    // Add more element conversions as needed
+}
+
+// PNG Export
+const updatePngPreview = () => {
+  if (!pngCanvas.value) return
+
+  const canvas = pngCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  const img = new Image()
+  img.onload = () => {
+    canvas.width = img.width
+    canvas.height = img.height
+    ctx.drawImage(img, 0, 0)
+  }
+  img.src = 'data:image/svg+xml;base64,' + btoa(svgCode.value)
+}
+
+const downloadPNG = () => {
+  if (!pngCanvas.value) return
+  
+  const link = document.createElement('a')
+  link.download = 'image.png'
+  link.href = pngCanvas.value.toDataURL()
+  link.click()
+}
+
+// Watch for SVG changes to update PNG preview
+watch(svgCode, updatePngPreview)
+
+// Update PNG preview on mount
+onMounted(updatePngPreview)
 
 // Upload functionality
 const triggerFileInput = () => {
