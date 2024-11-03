@@ -163,8 +163,41 @@
           </div>
 
           <!-- React Tab -->
-          <div v-else-if="activeTab === 'react'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ reactComponent }}</code></pre>
+          <div v-else-if="activeTab === 'react'" class="h-full flex flex-col">
+            <!-- Code Display -->
+            <div class="flex-1 bg-gray-100 p-4 rounded overflow-hidden">
+              <div class="relative h-full overflow-auto">
+                <pre
+                  class="code-block"
+                  :class="{ 'prismjs-light': true }"
+                ><div class="line-numbers">
+                    <span v-for="n in reactComponentLines" :key="n" class="line-number">{{ n }}</span>
+                  </div><code v-html="highlightedReactCode" class="language-jsx overflow-x-auto whitespace-pre-wrap"></code></pre>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-4">
+              <button
+                @click="copyReactCode"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                </svg>
+                Copy Code
+              </button>
+
+              <button
+                @click="downloadReactCode"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download JSX
+              </button>
+            </div>
           </div>
 
           <!-- React Native Tab -->
@@ -206,6 +239,9 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import DOMPurify from 'dompurify'
 import { validateSvg } from '~/utils/svg-utils'
+import Prism from 'prismjs'
+import 'prismjs/themes/prism.css'
+import 'prismjs/components/prism-jsx'
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const svgCode = ref(`<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -230,18 +266,18 @@ const activeTab = ref('preview')
 const pngCanvas = ref<HTMLCanvasElement | null>(null)
 
 // React Component Export
-const reactComponent = computed(() => {
-  const componentName = 'SvgIcon'
-  return `import React from 'react';
+// const reactComponent = computed(() => {
+//   const componentName = 'SvgIcon'
+//   return `import React from 'react';
 
-const ${componentName} = (props) => {
-  return (
-    ${svgCode.value.replace(/<svg/, '<svg {...props}')}
-  );
-};
+// const ${componentName} = (props) => {
+//   return (
+//     ${svgCode.value.replace(/<svg/, '<svg {...props}')}
+//   );
+// };
 
-export default ${componentName};`
-})
+// export default ${componentName};`
+// })
 
 // React Native Component Export
 const reactNativeComponent = computed(() => {
@@ -431,6 +467,60 @@ const stopDrag = () => {
 watch(zoom, () => {
   position.value = { x: 0, y: 0 }
 })
+
+// React code formatting
+const formatReactCode = (code: string) => {
+  return `import React from 'react';
+
+const SvgIcon = (props) => {
+  return (
+    ${code.replace(/<svg/, '<svg {...props}')}
+  );
+};
+
+export default SvgIcon;`
+}
+
+const reactComponent = computed(() => formatReactCode(svgCode.value))
+
+const highlightedReactCode = computed(() => {
+  return Prism.highlight(
+    reactComponent.value,
+    Prism.languages.jsx,
+    'jsx'
+  )
+})
+
+const reactComponentLines = computed(() => {
+  return reactComponent.value.split('\n').length
+})
+
+// React tab actions
+const copyReactCode = async () => {
+  try {
+    await navigator.clipboard.writeText(reactComponent.value)
+    alert('React component code copied to clipboard!')
+  } catch (err) {
+    alert('Failed to copy code')
+  }
+}
+
+const downloadReactCode = () => {
+  const blob = new Blob([reactComponent.value], { type: 'text/jsx' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'SvgIcon.jsx'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+// Initialize Prism
+onMounted(() => {
+  Prism.highlightAll()
+})
 </script>
 
 <style scoped>
@@ -468,5 +558,59 @@ pre {
 textarea {
   height: 100% !important;
   min-height: 0; /* Prevents textarea from growing beyond container */
+}
+
+/* Code block styling */
+.code-block {
+  display: flex;
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #f8f9fa;
+  border-radius: 4px;
+  position: relative;
+}
+
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid #e2e8f0;
+  background: #edf2f7;
+  user-select: none;
+  text-align: right;
+  color: #718096;
+}
+
+.line-number {
+  padding: 0 0.5rem;
+  min-width: 2.5rem;
+}
+
+.code-block code {
+  flex: 1;
+  padding: 1rem;
+  overflow-x: visible;
+}
+
+/* Prism theme overrides */
+:deep(.token.keyword) {
+  color: #d73a49;
+}
+
+:deep(.token.function) {
+  color: #6f42c1;
+}
+
+:deep(.token.string) {
+  color: #22863a;
+}
+
+:deep(.token.comment) {
+  color: #6a737d;
+}
+
+:deep(.token.punctuation) {
+  color: #24292e;
 }
 </style> 
