@@ -285,8 +285,63 @@
           </div>
 
           <!-- Data URI Tab -->
-          <div v-else-if="activeTab === 'data-uri'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ dataUri }}</code></pre>
+          <div v-else-if="activeTab === 'data-uri'" class="h-full flex flex-col gap-4">
+            <!-- Minified Data URI Card -->
+            <div class="bg-white rounded-lg shadow">
+              <div class="flex items-center justify-between px-4 py-3 border-b">
+                <h3 class="font-medium text-gray-700">Minified Data URI</h3>
+                <button
+                  @click="copyDataUri('minified')"
+                  class="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-b-lg">
+                <pre class="text-sm text-gray-600 break-all whitespace-pre-wrap"><code>{{ minifiedDataUri }}</code></pre>
+              </div>
+            </div>
+
+            <!-- Base64 Card -->
+            <div class="bg-white rounded-lg shadow">
+              <div class="flex items-center justify-between px-4 py-3 border-b">
+                <h3 class="font-medium text-gray-700">Base64</h3>
+                <button
+                  @click="copyDataUri('base64')"
+                  class="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-b-lg">
+                <pre class="text-sm text-gray-600 break-all whitespace-pre-wrap"><code>{{ base64DataUri }}</code></pre>
+              </div>
+            </div>
+
+            <!-- Encoded URI Component Card -->
+            <div class="bg-white rounded-lg shadow">
+              <div class="flex items-center justify-between px-4 py-3 border-b">
+                <h3 class="font-medium text-gray-700">Encoded URI Component</h3>
+                <button
+                  @click="copyDataUri('encoded')"
+                  class="text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  Copy
+                </button>
+              </div>
+              <div class="p-4 bg-gray-50 rounded-b-lg">
+                <pre class="text-sm text-gray-600 break-all whitespace-pre-wrap"><code>{{ encodedDataUri }}</code></pre>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -647,6 +702,36 @@ const downloadReactNativeCode = () => {
 onMounted(() => {
   Prism.highlightAll()
 })
+
+// Data URI computeds
+const minifiedDataUri = computed(() => {
+  const minified = svgCode.value.replace(/\s+/g, ' ').trim()
+  return `data:image/svg+xml,${encodeURIComponent(minified)}`
+})
+
+const base64DataUri = computed(() => {
+  return `data:image/svg+xml;base64,${btoa(svgCode.value)}`
+})
+
+const encodedDataUri = computed(() => {
+  return `data:image/svg+xml,${encodeURIComponent(svgCode.value)}`
+})
+
+// Data URI copy function
+const copyDataUri = async (type: 'minified' | 'base64' | 'encoded') => {
+  try {
+    const content = type === 'minified' 
+      ? minifiedDataUri.value 
+      : type === 'base64' 
+        ? base64DataUri.value 
+        : encodedDataUri.value
+
+    await navigator.clipboard.writeText(content)
+    alert(`${type.charAt(0).toUpperCase() + type.slice(1)} Data URI copied to clipboard!`)
+  } catch (err) {
+    alert('Failed to copy Data URI')
+  }
+}
 </script>
 
 <style scoped>
