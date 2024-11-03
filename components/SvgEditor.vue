@@ -201,8 +201,41 @@
           </div>
 
           <!-- React Native Tab -->
-          <div v-else-if="activeTab === 'react-native'" class="h-full">
-            <pre class="bg-gray-100 p-4 rounded overflow-auto h-full"><code>{{ reactNativeComponent }}</code></pre>
+          <div v-else-if="activeTab === 'react-native'" class="h-full flex flex-col">
+            <!-- Code Display -->
+            <div class="flex-1 bg-gray-100 p-4 rounded overflow-hidden">
+              <div class="relative h-full overflow-auto">
+                <pre
+                  class="code-block"
+                  :class="{ 'prismjs-light': true }"
+                ><div class="line-numbers">
+                    <span v-for="n in reactNativeComponentLines" :key="n" class="line-number">{{ n }}</span>
+                  </div><code v-html="highlightedReactNativeCode" class="language-jsx overflow-x-auto whitespace-pre-wrap"></code></pre>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-4">
+              <button
+                @click="copyReactNativeCode"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                </svg>
+                Copy Code
+              </button>
+
+              <button
+                @click="downloadReactNativeCode"
+                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download JSX
+              </button>
+            </div>
           </div>
 
           <!-- PNG Tab -->
@@ -511,6 +544,41 @@ const downloadReactCode = () => {
   const a = document.createElement('a')
   a.href = url
   a.download = 'SvgIcon.jsx'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+// React Native code formatting and computeds
+const highlightedReactNativeCode = computed(() => {
+  return Prism.highlight(
+    reactNativeComponent.value,
+    Prism.languages.jsx,
+    'jsx'
+  )
+})
+
+const reactNativeComponentLines = computed(() => {
+  return reactNativeComponent.value.split('\n').length
+})
+
+// React Native tab actions
+const copyReactNativeCode = async () => {
+  try {
+    await navigator.clipboard.writeText(reactNativeComponent.value)
+    alert('React Native component code copied to clipboard!')
+  } catch (err) {
+    alert('Failed to copy code')
+  }
+}
+
+const downloadReactNativeCode = () => {
+  const blob = new Blob([reactNativeComponent.value], { type: 'text/jsx' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'SvgIcon.native.jsx'
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
