@@ -239,14 +239,49 @@
           </div>
 
           <!-- PNG Tab -->
-          <div v-else-if="activeTab === 'png'" class="flex flex-col items-center gap-4">
-            <canvas ref="pngCanvas" class="border"></canvas>
-            <button 
-              @click="downloadPng"
-              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Download PNG
-            </button>
+          <div v-else-if="activeTab === 'png'" class="h-full flex flex-col">
+            <!-- PNG Preview -->
+            <div class="flex-1 bg-gray-100 p-4 rounded flex items-center justify-center">
+              <div class="relative w-full h-full flex items-center justify-center">
+                <canvas 
+                  ref="pngCanvas" 
+                  class="border rounded bg-white shadow-sm"
+                  :style="{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain'
+                  }"
+                ></canvas>
+              </div>
+            </div>
+
+            <!-- PNG Controls -->
+            <div class="flex items-center gap-4 mt-4">
+              <!-- Scale Selector -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Scale:</span>
+                <select
+                  v-model="pngScale"
+                  class="px-3 py-2 border rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  @change="updatePngPreview"
+                >
+                  <option v-for="scale in pngScales" :key="scale.value" :value="scale.value">
+                    {{ scale.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Download Button -->
+              <button
+                @click="downloadPNG"
+                class="ml-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download PNG
+              </button>
+            </div>
           </div>
 
           <!-- Data URI Tab -->
@@ -344,7 +379,16 @@ const convertToReactNativeSvg = (svg: string) => {
     // Add more element conversions as needed
 }
 
-// PNG Export
+// PNG scale options
+const pngScales = [
+  { label: '0.5x', value: 0.5 },
+  { label: '1x', value: 1 },
+  { label: '2x', value: 2 },
+  { label: '4x', value: 4 }
+]
+const pngScale = ref(1)
+
+// Update PNG preview function
 const updatePngPreview = () => {
   if (!pngCanvas.value) return
 
@@ -354,19 +398,33 @@ const updatePngPreview = () => {
 
   const img = new Image()
   img.onload = () => {
-    canvas.width = img.width
-    canvas.height = img.height
-    ctx.drawImage(img, 0, 0)
+    // Set canvas size based on scale
+    canvas.width = img.width * pngScale.value
+    canvas.height = img.height * pngScale.value
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Enable smooth scaling
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+
+    // Draw scaled image
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
   }
   img.src = 'data:image/svg+xml;base64,' + btoa(svgCode.value)
 }
 
+// Update PNG when scale changes
+watch(pngScale, updatePngPreview)
+
+// Download PNG with current scale
 const downloadPNG = () => {
   if (!pngCanvas.value) return
   
   const link = document.createElement('a')
-  link.download = 'image.png'
-  link.href = pngCanvas.value.toDataURL()
+  link.download = `image@${pngScale.value}x.png`
+  link.href = pngCanvas.value.toDataURL('image/png')
   link.click()
 }
 
@@ -680,5 +738,14 @@ textarea {
 
 :deep(.token.punctuation) {
   color: #24292e;
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
 }
 </style> 
