@@ -10,15 +10,21 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.1.5",
+    "clsx": "^2.1.1",
     "dompurify": "^3.1.7",
     "nuxt": "^3.13.2",
     "prismjs": "^1.29.0",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
+    "@nuxtjs/style-resources": "^1.2.2",
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@types/dompurify": "^3.0.5",
+    "sass": "^1.80.6",
     "vite-svg-loader": "^5.1.0"
   }
 }

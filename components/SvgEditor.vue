@@ -4,11 +4,11 @@
     <div class="flex flex-1 min-h-0">
       <!-- Code Editor Section -->
       <div class="w-1/2 p-2 bg-gray-900 flex flex-col">
-        <textarea
-          v-model="svgCode"
-          class="flex-1 w-full bg-gray-800 text-white font-mono p-4 resize-none"
-          @input="updatePreview"
-        ></textarea>
+         <!-- Replace textarea with CodeEditor -->
+      <CodeEditor
+        v-model="svgCode"
+        class="h-[calc(100vh-8rem)]"
+      />
         
         <!-- Editor Controls (Moved from top) -->
         <div class="py-2 px-4 flex gap-4 bg-gray-800 mt-2 rounded">
@@ -360,15 +360,18 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import Button from '@/components/ui/Button.vue'
+import CodeEditor from '@/components/CodeEditor.vue'
 import DOMPurify from 'dompurify'
-import { validateSvg } from '~/utils/svg-utils'
+import { validateSvg } from '@/utils/svg-utils'
 import Prism from 'prismjs'
 import 'prismjs/themes/prism.css'
 import 'prismjs/components/prism-jsx'
 
 const fileInput = ref<HTMLInputElement | null>(null)
-const svgCode = ref(`<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+const svgCode = ref(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="50" y="50" width="100" height="100" fill="#4f46e5" />
+  <circle cx="100" cy="100" r="30" fill="#ffffff" />
 </svg>`)
 
 const sanitizedSvg = computed(() => {
@@ -388,19 +391,22 @@ const tabs = [
 const activeTab = ref('preview')
 const pngCanvas = ref<HTMLCanvasElement | null>(null)
 
-// React Component Export
-// const reactComponent = computed(() => {
-//   const componentName = 'SvgIcon'
-//   return `import React from 'react';
-
-// const ${componentName} = (props) => {
-//   return (
-//     ${svgCode.value.replace(/<svg/, '<svg {...props}')}
-//   );
-// };
-
-// export default ${componentName};`
-// })
+const formatCode = () => {
+  try {
+    const parser = new DOMParser()
+    const xmlDoc = parser.parseFromString(svgCode.value, 'text/xml')
+    const serializer = new XMLSerializer()
+    const formatted = serializer.serializeToString(xmlDoc)
+      .replace(/>/g, '>\n  ')
+      .replace(/</g, '\n<')
+      .replace(/\n\n/g, '\n')
+      .trim()
+    
+    svgCode.value = formatted
+  } catch (error) {
+    console.error('Failed to format SVG code:', error)
+  }
+}
 
 // React Native Component Export
 const reactNativeComponent = computed(() => {
