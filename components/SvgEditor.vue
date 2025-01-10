@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden">
+  <div class="h-full flex flex-col overflow-hidden">
     <!-- Editor and Preview -->
     <div class="flex flex-1 min-h-0">
       <!-- Code Editor Section -->
@@ -838,5 +838,18 @@ select {
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
   padding-right: 2.5rem;
+}
+
+:deep(.editor-section) {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.content-area) {
+  flex: 1;
+  min-height: 0; /* Important for Firefox */
+  overflow: hidden;
 }
 </style> 
