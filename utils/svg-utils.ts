@@ -15,4 +15,4 @@ export const formatSvg = (svgCode: string): string => {
 export const optimizeSvg = async (svgCode: string): Promise<string> => {
   // You can integrate SVGO here for optimization
   return svgCode
-} 
+}

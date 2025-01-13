@@ -48,4 +48,4 @@ const sizeStyles = {
   sm: 'h-9 px-3',
   lg: 'h-11 px-8'
 }
-</script> 
+</script>

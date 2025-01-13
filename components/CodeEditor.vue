@@ -233,4 +233,4 @@ pre, code {
 :deep(.token.entity) {
   color: #569CD6;
 }
-</style> 
+</style>

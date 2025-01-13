@@ -15,4 +15,4 @@ interface Props {
 }
 
 defineProps<Props>()
-</script> 
+</script>

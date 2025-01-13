@@ -6,4 +6,4 @@
 
 <script setup lang="ts">
 import LogoIcon from '~/assets/icons/logo.svg'
-</script> 
+</script>
